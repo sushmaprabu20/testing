@@ -6,7 +6,7 @@ import './Analysis.css';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-const AnalysisResults = ({ assessment, onReset }) => {
+const AnalysisResults = ({ assessment, analysis, onReset }) => {
     const { readinessScore, targetCareer, matchedSkills, missingSkills, feasibility } = assessment;
 
     const chartData = {
@@ -63,6 +63,25 @@ const AnalysisResults = ({ assessment, onReset }) => {
                     </ul>
                 </div>
             </div>
+
+            {analysis?.alternativeCareers?.length > 0 && (
+                <div className="alternative-careers card">
+                    <h3>Recommended Alternative Career Paths</h3>
+                    <p>Based on your detected skills, you might also be a strong fit for:</p>
+                    <div className="alternatives-grid">
+                        {analysis.alternativeCareers.map((alt, index) => (
+                            <div key={index} className="alt-career-item">
+                                <div className="alt-name">{alt.career}</div>
+                                <div className="alt-score">{alt.matchScore}% Match</div>
+                                <div className="alt-skills">
+                                    {alt.matchedSkills.slice(0, 3).join(', ')}
+                                    {alt.matchedSkills.length > 3 && '...'}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

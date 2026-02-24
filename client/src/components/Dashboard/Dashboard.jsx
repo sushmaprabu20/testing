@@ -57,7 +57,11 @@ const Dashboard = () => {
                             handleUploadSuccess(data);
                         }} onUploadError={() => setLoading(false)} />
                     ) : (
-                        <AnalysisResults assessment={assessment} onReset={() => setAssessment(null)} />
+                        <AnalysisResults
+                            assessment={assessment}
+                            analysis={analysis}
+                            onReset={() => setAssessment(null)}
+                        />
                     )}
 
                     {assessment && !roadmap && (

@@ -51,13 +51,36 @@ const uploadResume = async (req, res) => {
         }
         console.log('[ANALYSIS] Student profile updated successfully');
 
-        // 4. Save analysis
+        // 4. Calculate Alternative Careers
+        console.log('[ANALYSIS] Calculating alternative career recommendations...');
+        const allCareers = Object.keys(careerConfig);
+        const recommendations = allCareers
+            .filter(career => career !== targetCareer)
+            .map(career => {
+                const careerSkills = careerConfig[career];
+                const matchedForThisCareer = extractedSkills.filter(skill =>
+                    careerSkills.some(cs => cs.toLowerCase() === skill.toLowerCase())
+                );
+                const score = Math.round((matchedForThisCareer.length / careerSkills.length) * 100);
+                return {
+                    career,
+                    matchScore: score,
+                    matchedSkills: matchedForThisCareer
+                };
+            })
+            .sort((a, b) => b.matchScore - a.matchScore)
+            .slice(0, 3); // Get top 3 alternatives
+
+        console.log('[ANALYSIS] Alternative recommendations:', recommendations.map(r => r.career));
+
+        // 5. Save analysis
         console.log('[ANALYSIS] Saving raw analysis results...');
         const analysis = await ResumeAnalysis.create({
             student: student._id,
             fileName: req.file.originalname,
             extractedText,
-            extractedSkills
+            extractedSkills,
+            alternativeCareers: recommendations
         });
         console.log(`[ANALYSIS] Analysis record created with ID: ${analysis._id}`);
 

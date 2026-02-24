@@ -15,6 +15,11 @@ const resumeAnalysisSchema = new mongoose.Schema({
         required: true,
     },
     extractedSkills: [String],
+    alternativeCareers: [{
+        career: String,
+        matchScore: Number,
+        matchedSkills: [String]
+    }],
 }, {
     timestamps: true,
 });

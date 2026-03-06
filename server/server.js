@@ -11,6 +11,7 @@ const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const resumeRoutes = require('./routes/resumeRoutes');
 const courseRoutes = require('./routes/courseRoutes');
+const expertRoutes = require('./routes/expertRoutes');
 
 console.log('Starting server...');
 console.log('Env loaded');
@@ -32,6 +33,8 @@ console.log('Middleware applied');
 app.use('/api/auth', authRoutes);
 app.use('/api/resume', resumeRoutes);
 app.use('/api/courses', courseRoutes);
+app.use('/api/experts', expertRoutes);
+app.use('/api/mentors', require('./routes/mentorRoutes'));
 console.log('Routes mounted');
 
 app.get('/api/diag', (req, res) => {

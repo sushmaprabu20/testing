@@ -10,19 +10,19 @@ const CareerPaths = () => {
     ];
 
     return (
-        <div className="container" style={{ padding: '6rem 5%' }}>
-            <h1 style={{ textAlign: 'center', marginBottom: '3rem', color: '#fff' }}>Explore Career Paths</h1>
+        <div className="container" style={{ padding: '6rem 5%', maxWidth: '1200px', margin: '0 auto' }}>
+            <h1 style={{ textAlign: 'center', marginBottom: '3rem', color: 'var(--text-main)', fontSize: '2.5rem', fontWeight: '800' }}>Explore Career Paths</h1>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
                 {paths.map((path, idx) => (
                     <motion.div
                         key={idx}
                         whileHover={{ y: -10 }}
                         className="card"
-                        style={{ textAlign: 'center' }}
+                        style={{ textAlign: 'center', border: '1px solid var(--border-color)' }}
                     >
                         <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'center' }}>{path.icon}</div>
-                        <h3 style={{ color: '#fff', marginBottom: '1rem' }}>{path.title}</h3>
-                        <p style={{ color: '#ccc' }}>{path.desc}</p>
+                        <h3 style={{ color: 'var(--text-main)', marginBottom: '1rem', fontSize: '1.5rem' }}>{path.title}</h3>
+                        <p style={{ color: 'var(--text-muted)' }}>{path.desc}</p>
                     </motion.div>
                 ))}
             </div>

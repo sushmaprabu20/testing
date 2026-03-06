@@ -28,8 +28,12 @@ const Navbar = () => {
             <div className="navbar-auth">
                 {user ? (
                     <div className="nav-user">
-                        <span>Hi, {user.name.split(' ')[0]}</span>
-                        <button onClick={handleLogout} className="btn-logout">
+                        <Link to="/profile" className="profile-link" title="My Profile">
+                            <div className="profile-avatar">
+                                {user.name.charAt(0)}
+                            </div>
+                        </Link>
+                        <button onClick={handleLogout} className="btn-logout" title="Logout">
                             <LogOut size={18} />
                         </button>
                     </div>

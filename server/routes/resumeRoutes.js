@@ -1,7 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
-const { uploadResume } = require('../controllers/resumeController');
+const { uploadResume, analyzeManualSkills } = require('../controllers/resumeController');
 const { protect } = require('../services/authMiddleware');
 
 const router = express.Router();
@@ -39,6 +39,8 @@ router.post('/upload', protect, (req, res, next) => {
         next();
     });
 }, uploadResume);
+
+router.post('/analyze-manual', protect, analyzeManualSkills);
 
 
 module.exports = router;

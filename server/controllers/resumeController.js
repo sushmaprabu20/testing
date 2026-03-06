@@ -142,6 +142,99 @@ const uploadResume = async (req, res) => {
     }
 };
 
+const analyzeManualSkills = async (req, res) => {
+    try {
+        const { targetCareer, manualSkills } = req.body;
+        if (!targetCareer || !careerConfig[targetCareer]) {
+            return res.status(400).json({ message: 'Valid target career is required' });
+        }
+        if (!manualSkills) {
+            return res.status(400).json({ message: 'Skills are required for manual analysis' });
+        }
+
+        if (!req.user) {
+            return res.status(401).json({ message: 'User not authenticated' });
+        }
+
+        // 1. Extract/Normalize skills from manual input
+        console.log(`[MANUAL ANALYSIS] Processing manual skills for user ID: ${req.user._id}`);
+        // We can treat manualSkills as text and use our robust extractor
+        const extractedSkills = extractSkills(manualSkills);
+        console.log('[MANUAL ANALYSIS] Normalized skills:', extractedSkills);
+
+        // 2. Find or create student
+        let student = await Student.findOne({ user: req.user._id });
+        if (!student) {
+            student = await Student.create({
+                user: req.user._id,
+                targetCareer,
+                skills: extractedSkills
+            });
+        } else {
+            student.targetCareer = targetCareer;
+            student.skills = Array.from(new Set([...student.skills, ...extractedSkills]));
+            await student.save();
+        }
+
+        // 3. Calculate Alternative Careers
+        const allCareers = Object.keys(careerConfig);
+        const recommendations = allCareers
+            .filter(career => career !== targetCareer)
+            .map(career => {
+                const careerSkills = careerConfig[career];
+                const matchedForThisCareer = extractedSkills.filter(skill =>
+                    careerSkills.some(cs => cs.toLowerCase() === skill.toLowerCase())
+                );
+                const score = Math.round((matchedForThisCareer.length / careerSkills.length) * 100);
+                return {
+                    career,
+                    matchScore: score,
+                    matchedSkills: matchedForThisCareer
+                };
+            })
+            .sort((a, b) => b.matchScore - a.matchScore)
+            .slice(0, 3);
+
+        // 4. Skill gap analysis
+        const requiredSkills = careerConfig[targetCareer];
+        const matchedSkills = extractedSkills.filter(skill =>
+            requiredSkills.some(reqSkill => reqSkill.toLowerCase() === skill.toLowerCase())
+        );
+        const missingSkills = requiredSkills.filter(reqSkill =>
+            !extractedSkills.some(skill => skill.toLowerCase() === reqSkill.toLowerCase())
+        );
+
+        const readinessScore = Math.round((matchedSkills.length / requiredSkills.length) * 100);
+
+        let feasibility = 'Low';
+        if (readinessScore > 75) feasibility = 'High';
+        else if (readinessScore >= 50) feasibility = 'Medium';
+
+        const assessment = await SkillAssessment.create({
+            student: student._id,
+            targetCareer,
+            requiredSkills,
+            missingSkills,
+            matchedSkills,
+            readinessScore,
+            feasibility
+        });
+
+        console.log('[MANUAL ANALYSIS] COMPLETED SUCCESSFULLY');
+        res.status(201).json({
+            analysis: { extractedSkills, alternativeCareers: recommendations },
+            assessment
+        });
+    } catch (error) {
+        console.error('[MANUAL ANALYSIS] CRITICAL ERROR:', error);
+        res.status(500).json({
+            message: 'Server error during manual skill analysis',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     uploadResume,
+    analyzeManualSkills
 };

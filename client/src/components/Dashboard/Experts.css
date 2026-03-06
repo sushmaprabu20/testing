@@ -1,0 +1,224 @@
+.experts-section {
+    margin-top: 4rem;
+    padding-top: 4rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.section-title h2 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--text-main);
+    margin: 0;
+}
+
+.expert-filters {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.filter-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #fff;
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 1rem;
+    border-radius: 10px;
+    color: var(--text-muted);
+}
+
+.filter-item select {
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--text-main);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.domain-filter {
+    padding: 0.6rem 1.2rem;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    outline: none;
+    transition: 0.3s;
+    width: 200px;
+}
+
+.domain-filter:focus {
+    border-color: var(--primary-orange);
+    box-shadow: 0 0 0 4px rgba(255, 107, 74, 0.1);
+}
+
+.experts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 2rem;
+}
+
+.recommendations-block {
+    margin-bottom: 5rem;
+    padding: 2.5rem;
+    background: linear-gradient(135deg, #fffcfb 0%, #fff5f2 100%);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 87, 34, 0.1);
+}
+
+.recommendations-block .section-title {
+    margin-bottom: 2rem;
+}
+
+/* --- Expert Card --- */
+.expert-card {
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    transition: transform 0.3s, box-shadow 0.3s;
+    border: 1px solid var(--border-color);
+}
+
+.expert-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+}
+
+.expert-header {
+    display: flex;
+    gap: 1.2rem;
+    margin-bottom: 1.2rem;
+}
+
+.expert-photo {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #fff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.expert-info h3 {
+    font-size: 1.2rem;
+    margin-bottom: 0.4rem;
+    color: var(--text-main);
+}
+
+.expert-role-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: #f1f3f5;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+.expert-desc {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    flex-grow: 1;
+}
+
+.expert-meta {
+    margin-bottom: 1.5rem;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+}
+
+.expert-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.skill-tag {
+    background: #fff0eb;
+    color: var(--primary-orange);
+    padding: 0.3rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.expert-actions {
+    display: flex;
+    gap: 0.8rem;
+}
+
+.btn-expert {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 0.75rem;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: 0.3s;
+    font-weight: 600;
+}
+
+.btn-expert.book {
+    flex: 1;
+    background: var(--primary-orange);
+    color: #fff;
+}
+
+.btn-expert.book:hover {
+    background: #e64a19;
+}
+
+.btn-expert.msg {
+    background: #f1f3f5;
+    color: var(--text-main);
+    width: 48px;
+}
+
+.btn-expert.msg:hover {
+    background: #e9ecef;
+}
+
+@media (max-width: 640px) {
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .expert-filters {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .domain-filter {
+        width: 100%;
+    }
+
+    .filter-item {
+        width: 100%;
+    }
+}

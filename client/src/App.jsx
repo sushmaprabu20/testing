@@ -9,6 +9,7 @@ import About from './pages/About';
 import Contact from './pages/Contact';
 import CareerPaths from './pages/CareerPaths';
 import Dashboard from './components/Dashboard/Dashboard';
+import UserProfile from './pages/UserProfile';
 import PrivateRoute from './components/PrivateRoute';
 import './App.css';
 
@@ -30,6 +31,14 @@ function App() {
                             element={
                                 <PrivateRoute>
                                     <Dashboard />
+                                </PrivateRoute>
+                            }
+                        />
+                        <Route
+                            path="/profile"
+                            element={
+                                <PrivateRoute>
+                                    <UserProfile />
                                 </PrivateRoute>
                             }
                         />

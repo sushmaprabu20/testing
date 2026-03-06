@@ -35,6 +35,7 @@ app.use('/api/resume', resumeRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/experts', expertRoutes);
 app.use('/api/mentors', require('./routes/mentorRoutes'));
+app.use('/api/community', require('./routes/communityRoutes'));
 console.log('Routes mounted');
 
 app.get('/api/diag', (req, res) => {

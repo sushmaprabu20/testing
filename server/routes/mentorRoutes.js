@@ -7,5 +7,6 @@ router.post('/register', protect, mentorController.registerMentor);
 router.post('/recommendations', protect, mentorController.getRecommendedMentors);
 router.get('/profile', protect, mentorController.getUserProfile);
 router.put('/profile', protect, mentorController.updateProfile);
+router.get('/all', protect, mentorController.getAllMentors);
 
 module.exports = router;

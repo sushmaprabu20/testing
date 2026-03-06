@@ -7,7 +7,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import About from './pages/About';
 import Contact from './pages/Contact';
-import CareerPaths from './pages/CareerPaths';
+import Community from './pages/Community';
 import Dashboard from './components/Dashboard/Dashboard';
 import UserProfile from './pages/UserProfile';
 import PrivateRoute from './components/PrivateRoute';
@@ -25,7 +25,7 @@ function App() {
                         <Route path="/signup" element={<Signup />} />
                         <Route path="/about" element={<About />} />
                         <Route path="/contact" element={<Contact />} />
-                        <Route path="/career-paths" element={<CareerPaths />} />
+                        <Route path="/community" element={<Community />} />
                         <Route
                             path="/dashboard"
                             element={

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../utils/api';
 import { Users, Filter, Sparkles, MessageSquare, Briefcase } from 'lucide-react';
-import './Experts.css'; // Reusing Experts.css as base
+import './MentorSection.css';
+// import './Experts.css'; // Removed as file was deleted during cleanup
 
 const MentorSection = ({ targetCareer, skillGaps }) => {
     const [mentors, setMentors] = useState([]);
@@ -39,61 +40,45 @@ const MentorSection = ({ targetCareer, skillGaps }) => {
                         <div key={mentor._id} className="expert-card card">
                             <div className="expert-header">
                                 <div className="expert-photo-placeholder">
-                                    {mentor.user.name.charAt(0)}
+                                    {mentor.user?.name ? mentor.user.name.charAt(0) : 'M'}
                                 </div>
                                 <div className="expert-info">
-                                    <h3>{mentor.user.name}</h3>
-                                    <div className="expert-role-badge">{mentor.mentorProfile.currentRole}</div>
+                                    <h3>{mentor.user?.name || 'Anonymous Mentor'}</h3>
+                                    <div className="expert-role-badge">{mentor.currentRole}</div>
                                 </div>
+
                             </div>
 
-                            <p className="expert-desc">{mentor.mentorProfile.bio}</p>
+                            <p className="expert-desc">{mentor.bio}</p>
+
 
                             <div className="expert-meta">
                                 <div className="meta-item">
                                     <Briefcase size={16} />
-                                    <span>{mentor.mentorProfile.company || mentor.mentorProfile.organization}</span>
+                                    <span>{mentor.company}</span>
                                 </div>
+
                                 <div className="expert-tags">
-                                    {mentor.skills.slice(0, 3).map((s, i) => (
-                                        <span key={i} className="skill-tag">{s}</span>
-                                    ))}
+                                    {/* Using mentor.user or other available skill sources if needed, for now just show a fallback if skills aren't on mentor object directly */}
+                                    {mentor.primaryDomain && <span className="skill-tag">{mentor.primaryDomain}</span>}
+                                    {mentor.expertRole && <span className="skill-tag">{mentor.expertRole}</span>}
                                 </div>
+
                             </div>
 
                             <div className="expert-actions">
-                                <button className="btn-expert book" title="Connect with Mentor">
+                                <button className="btn-expert book" title="View LinkedIn Profile" onClick={() => window.open(mentor.linkedIn, '_blank')}>
                                     <span>Connect</span>
                                 </button>
-                                <button className="btn-expert msg">
+                                <button className="btn-expert msg" title="Message on LinkedIn" onClick={() => window.open(mentor.linkedIn, '_blank')}>
                                     <MessageSquare size={18} />
                                 </button>
                             </div>
+
                         </div>
                     ))}
                 </div>
             </div>
-
-            <style jsx>{`
-                .expert-photo-placeholder {
-                    width: 64px;
-                    height: 64px;
-                    background: var(--primary-gradient);
-                    color: #fff;
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 1.5rem;
-                    font-weight: 700;
-                    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-                }
-                .community-mentors .section-desc {
-                    color: var(--text-muted);
-                    margin-bottom: 2rem;
-                    font-size: 1.1rem;
-                }
-            `}</style>
         </div>
     );
 };

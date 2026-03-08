@@ -1,4 +1,6 @@
 const Student = require('../models/Student');
+const Mentor = require('../models/Mentor');
+
 
 exports.registerMentor = async (req, res) => {
     try {
@@ -8,61 +10,84 @@ exports.registerMentor = async (req, res) => {
         }
 
         const {
-            fullName,
             currentRole,
             company,
-            organization,
             experience,
             primaryDomain,
             bio,
             linkedIn,
-            portfolio,
             availability,
             expertRole
         } = req.body;
 
+        // 1. Update Student Profile
         student.isMentor = true;
         student.mentorProfile = {
             company,
-            organization,
             experience,
             primaryDomain,
             bio,
             linkedIn,
-            portfolio,
             availability,
             expertRole
         };
-
         await student.save();
-        res.status(200).json({ message: 'Mentor profile registered successfully', student });
+
+        // 2. Create or Update Mentor Record
+        let mentor = await Mentor.findOne({ user: req.user._id });
+        if (mentor) {
+            mentor.currentRole = currentRole;
+            mentor.company = company;
+            mentor.experience = experience;
+            mentor.primaryDomain = primaryDomain;
+            mentor.bio = bio;
+            mentor.linkedIn = linkedIn;
+            mentor.availability = availability;
+            mentor.expertRole = expertRole;
+            await mentor.save();
+        } else {
+            mentor = await Mentor.create({
+                user: req.user._id,
+                currentRole,
+                company,
+                experience,
+                primaryDomain,
+                bio,
+                linkedIn,
+                availability,
+                expertRole
+            });
+        }
+
+        res.status(200).json({
+            message: 'Mentor profile registered successfully',
+            student,
+            mentor
+        });
     } catch (error) {
+        console.error('Error registering mentor:', error);
         res.status(500).json({ message: 'Error registering mentor', error: error.message });
     }
 };
 
+
 exports.getRecommendedMentors = async (req, res) => {
     try {
-        const { targetCareer, skillGaps } = req.body;
+        const { targetCareer } = req.body;
 
-        let query = {
-            isMentor: true,
+        const query = {
             user: { $ne: req.user._id } // Don't recommend self
         };
 
-        // Algorithm logic: 
-        // 1. Match primary domain or target career
-        // 2. Match skills (not implemented yet in this basic version, will add in future iteration)
-
-        const mentors = await Student.find(query)
+        const mentors = await Mentor.find(query)
             .populate('user', 'name')
-            .limit(5);
+            .limit(10);
 
-        // Simple scoring / filtering
+        // Simple filtering based on targetCareer
         const filteredMentors = mentors.filter(m => {
-            const domainMatch = m.mentorProfile?.primaryDomain?.toLowerCase() === targetCareer?.toLowerCase();
-            const roleMatch = m.mentorProfile?.expertRole?.toLowerCase().includes('industry') ||
-                m.mentorProfile?.expertRole?.toLowerCase().includes('domain');
+            const domainMatch = m.primaryDomain?.toLowerCase() === targetCareer?.toLowerCase();
+            const roleMatch = m.expertRole?.toLowerCase().includes('industry') ||
+                m.expertRole?.toLowerCase().includes('domain');
             return domainMatch || roleMatch;
         });
 
@@ -71,6 +96,7 @@ exports.getRecommendedMentors = async (req, res) => {
         res.status(500).json({ message: 'Error fetching recommended mentors', error: error.message });
     }
 };
+
 
 exports.getUserProfile = async (req, res) => {
     try {
@@ -97,11 +123,24 @@ exports.updateProfile = async (req, res) => {
 
 exports.getAllMentors = async (req, res) => {
     try {
-        const mentors = await Student.find({ isMentor: true })
+        const mentors = await Mentor.find({})
             .populate('user', 'name')
-            .limit(10);
+            .limit(20);
         res.status(200).json(mentors);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching mentors', error: error.message });
+    }
+};
+
+
+exports.deleteProfile = async (req, res) => {
+    try {
+        const student = await Student.findOne({ user: req.user._id });
+        if (!student) return res.status(404).json({ message: 'Profile not found' });
+
+        await student.deleteOne();
+        res.status(200).json({ message: 'Career profile deleted' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting profile', error: error.message });
     }
 };

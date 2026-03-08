@@ -10,11 +10,13 @@ const api = axios.create({
 // Add a request interceptor to include the token
 api.interceptors.request.use(
     (config) => {
-        const userInfo = localStorage.getItem('userInfo')
-            ? JSON.parse(localStorage.getItem('userInfo'))
-            : null;
-        if (userInfo && userInfo.token) {
-            config.headers.Authorization = `Bearer ${userInfo.token}`;
+        const userInfo = localStorage.getItem('userInfo') ? JSON.parse(localStorage.getItem('userInfo')) : null;
+        const directToken = localStorage.getItem('token');
+
+        const token = userInfo?.token || directToken;
+
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
         }
 
         // Remove application/json if sending FormData
@@ -25,6 +27,18 @@ api.interceptors.request.use(
         return config;
     },
     (error) => {
+        return Promise.reject(error);
+    }
+);
+
+// Add a response interceptor for debugging
+api.interceptors.response.use(
+    (response) => {
+        console.log(`[API SUCCESS] ${response.config.method.toUpperCase()} ${response.config.url}`, response.data);
+        return response;
+    },
+    (error) => {
+        console.error(`[API ERROR] ${error.config?.method?.toUpperCase()} ${error.config?.url}`, error.response?.data || error.message);
         return Promise.reject(error);
     }
 );

@@ -3,6 +3,7 @@ const Group = require('../models/Group');
 
 exports.createPost = async (req, res) => {
     try {
+        console.log('[COMMUNITY] Creating post:', req.body);
         const { content, category } = req.body;
         const post = new Post({
             user: req.user._id,
@@ -30,6 +31,7 @@ exports.getPosts = async (req, res) => {
 
 exports.likePost = async (req, res) => {
     try {
+        console.log(`[COMMUNITY] Liking post: ${req.params.id}`);
         const post = await Post.findById(req.params.id);
         if (!post) return res.status(404).json({ message: 'Post not found' });
 
@@ -47,6 +49,7 @@ exports.likePost = async (req, res) => {
 
 exports.addComment = async (req, res) => {
     try {
+        console.log(`[COMMUNITY] Adding comment to post ${req.params.id}:`, req.body);
         const { text } = req.body;
         const post = await Post.findById(req.params.id);
         if (!post) return res.status(404).json({ message: 'Post not found' });
@@ -84,5 +87,43 @@ exports.joinGroup = async (req, res) => {
         res.status(200).json(group);
     } catch (error) {
         res.status(500).json({ message: 'Error joining group', error: error.message });
+    }
+};
+
+exports.deletePost = async (req, res) => {
+    try {
+        const post = await Post.findById(req.params.id);
+        if (!post) return res.status(404).json({ message: 'Post not found' });
+
+        if (post.user.toString() !== req.user._id.toString()) {
+            return res.status(401).json({ message: 'User not authorized to delete this post' });
+        }
+
+        await post.deleteOne();
+        res.status(200).json({ message: 'Post removed' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting post', error: error.message });
+    }
+};
+
+exports.deleteComment = async (req, res) => {
+    try {
+        const post = await Post.findById(req.params.id);
+        if (!post) return res.status(404).json({ message: 'Post not found' });
+
+        const comment = post.comments.id(req.params.commentId);
+        if (!comment) return res.status(404).json({ message: 'Comment not found' });
+
+        if (comment.user.toString() !== req.user._id.toString()) {
+            return res.status(401).json({ message: 'User not authorized to delete this comment' });
+        }
+
+        comment.deleteOne();
+        await post.save();
+
+        const populatedPost = await Post.findById(post._id).populate('comments.user', 'name');
+        res.status(200).json(populatedPost);
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting comment', error: error.message });
     }
 };

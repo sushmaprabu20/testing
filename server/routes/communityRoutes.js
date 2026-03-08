@@ -10,5 +10,7 @@ router.post('/posts/:id/comment', protect, communityController.addComment);
 
 router.get('/groups', protect, communityController.getGroups);
 router.post('/groups/:id/join', protect, communityController.joinGroup);
+router.delete('/posts/:id', protect, communityController.deletePost);
+router.delete('/posts/:id/comment/:commentId', protect, communityController.deleteComment);
 
 module.exports = router;

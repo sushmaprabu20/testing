@@ -209,7 +209,62 @@ const courseRecommendations = {
             link: 'https://www.youtube.com/watch?v=scEDHsr3APg',
             thumbnail: 'https://i.ytimg.com/vi/scEDHsr3APg/maxresdefault.jpg'
         }
+    ],
+    'pandas': [
+        {
+            title: 'Data Analysis with Python and Pandas',
+            platform: 'YouTube',
+            description: 'Learn how to use Pandas for data manipulation and analysis.',
+            link: 'https://www.youtube.com/watch?v=vmEHCJofslg',
+            thumbnail: 'https://i.ytimg.com/vi/vmEHCJofslg/maxresdefault.jpg'
+        }
+    ],
+    'numpy': [
+        {
+            title: 'NumPy Tutorial for Beginners',
+            platform: 'YouTube',
+            description: 'A complete guide to NumPy for data science and machine learning.',
+            link: 'https://www.youtube.com/watch?v=QUT1VHiLmmI',
+            thumbnail: 'https://i.ytimg.com/vi/QUT1VHiLmmI/maxresdefault.jpg'
+        }
+    ],
+    'scikit-learn': [
+        {
+            title: 'Machine Learning with Scikit-learn',
+            platform: 'YouTube',
+            description: 'Learn the fundamentals of machine learning using Scikit-learn library.',
+            link: 'https://www.youtube.com/watch?v=0Lt9w-RO8MC',
+            thumbnail: 'https://i.ytimg.com/vi/0Lt9w-RO8MC/maxresdefault.jpg'
+        }
+    ],
+    'statistics': [
+        {
+            title: 'Statistics for Data Science',
+            platform: 'Coursera',
+            description: 'Learn the essentials of statistics for a career in data science.',
+            link: 'https://www.coursera.org/specializations/statistics-data-science',
+            thumbnail: 'https://images.unsplash.com/photo-1551288049-bbbda536ad0a?auto=format&fit=crop&q=80&w=480'
+        }
+    ],
+    'linux': [
+        {
+            title: 'Linux for Beginners',
+            platform: 'YouTube',
+            description: 'Learn the fundamentals of Linux operating system and command line.',
+            link: 'https://www.youtube.com/watch?v=V1y-mbWM3B8',
+            thumbnail: 'https://i.ytimg.com/vi/V1y-mbWM3B8/maxresdefault.jpg'
+        }
+    ],
+    'terraform': [
+        {
+            title: 'Terraform Tutorial for Beginners',
+            platform: 'YouTube',
+            description: 'Learn Infrastructure as Code using Terraform with AWS.',
+            link: 'https://www.youtube.com/watch?v=h970ZZaL7F8',
+            thumbnail: 'https://i.ytimg.com/vi/h970ZZaL7F8/maxresdefault.jpg'
+        }
     ]
+
 };
 
 

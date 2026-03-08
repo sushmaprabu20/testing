@@ -18,27 +18,46 @@ const getRecommendations = async (req, res) => {
 
         let recommendedCourses = [];
         const seenCourses = new Set();
+        const uncoveredSkills = [];
 
-        // Map each missing skill to its corresponding courses
+        // 1. First pass: Find actual course recommendations
         missingSkills.forEach(skill => {
             const normalizedSkill = skill.toLowerCase();
             const courses = courseRecommendations[normalizedSkill];
 
-            if (courses) {
+            if (courses && courses.length > 0) {
                 courses.forEach(course => {
                     if (!seenCourses.has(course.link)) {
-                        recommendedCourses.push(course);
+                        recommendedCourses.push({
+                            ...course,
+                            addressedSkill: skill
+                        });
                         seenCourses.add(course.link);
                     }
                 });
+            } else {
+                uncoveredSkills.push(skill);
             }
         });
 
-        // Limit to 5 courses
-        recommendedCourses = recommendedCourses.slice(0, 5);
+        // 2. Second pass: Add fallbacks for uncovered skills
+        uncoveredSkills.forEach(skill => {
+            const encodedSkill = encodeURIComponent(skill);
+            const fallbackCourse = {
+                title: `Learn ${skill} (Search Results)`,
+                platform: 'Udemy / Coursera',
+                description: `Find top-rated courses to master ${skill} and bridge your skill gap.`,
+                link: `https://www.udemy.com/courses/search/?q=${encodedSkill}`,
+                thumbnail: 'https://images.unsplash.com/photo-1501504905953-f8c97f33e1f1?auto=format&fit=crop&q=80&w=480',
+                addressedSkill: skill,
+                isFallback: true
+            };
+            recommendedCourses.push(fallbackCourse);
+        });
 
-        // If no curated courses found for specifically missing skills, 
-        // return an empty array but status 'gap' to show gaps message on frontend
+        // Limit to 10 courses instead of 5 to allow better coverage
+        recommendedCourses = recommendedCourses.slice(0, 10);
+
         res.status(200).json({
             status: 'gap',
             courses: recommendedCourses
@@ -49,6 +68,7 @@ const getRecommendations = async (req, res) => {
         res.status(500).json({ message: 'Error fetching course recommendations' });
     }
 };
+
 
 module.exports = {
     getRecommendations

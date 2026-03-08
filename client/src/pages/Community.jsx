@@ -1,15 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
-import { MessageSquare, Users, Sparkles, Filter, Send, ThumbsUp, MessageCircle, Briefcase, Plus, Search } from 'lucide-react';
+import { AuthContext } from '../context/AuthContext';
+import { MessageSquare, Users, Sparkles, Filter, Send, ThumbsUp, MessageCircle, Briefcase, Plus, Search, Trash2 } from 'lucide-react';
 import './Community.css';
 
 const Community = () => {
+    const navigate = useNavigate();
+    const { user } = useContext(AuthContext);
     const [posts, setPosts] = useState([]);
     const [groups, setGroups] = useState([]);
     const [mentors, setMentors] = useState([]);
     const [loading, setLoading] = useState(true);
     const [newPost, setNewPost] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('General');
+    const [showMentorReg, setShowMentorReg] = useState(false);
+    const [userProfile, setUserProfile] = useState(null);
+
 
     const categories = ['General', 'Backend Development', 'Frontend Development', 'Data Science', 'AI/ML', 'DevOps', 'Interview Experience'];
 
@@ -19,14 +26,17 @@ const Community = () => {
 
     const fetchCommunityData = async () => {
         try {
-            const [postsRes, groupsRes, mentorsRes] = await Promise.all([
+            const [postsRes, groupsRes, mentorsRes, profileRes] = await Promise.all([
                 api.get('/community/posts'),
                 api.get('/community/groups'),
-                api.get('/mentors/all')
+                api.get('/mentors/all'),
+                user ? api.get('/mentors/profile') : Promise.resolve({ data: null })
             ]);
             setPosts(postsRes.data);
             setGroups(groupsRes.data);
             setMentors(mentorsRes.data);
+            setUserProfile(profileRes.data);
+
             setLoading(false);
         } catch (err) {
             console.error('Error fetching community data:', err);
@@ -59,11 +69,42 @@ const Community = () => {
         }
     };
 
+    const handleDeletePost = async (postId) => {
+        if (!window.confirm('Are you sure you want to delete this post?')) return;
+        try {
+            await api.delete(`/community/posts/${postId}`);
+            setPosts(posts.filter(p => p._id !== postId));
+        } catch (err) {
+            console.error('Error deleting post:', err);
+        }
+    };
+
+    const handleDeleteComment = async (postId, commentId) => {
+        if (!window.confirm('Are you sure you want to delete this comment?')) return;
+        try {
+            const res = await api.delete(`/community/posts/${postId}/comment/${commentId}`);
+            setPosts(posts.map(p => p._id === postId ? res.data : p));
+        } catch (err) {
+            console.error('Error deleting comment:', err);
+        }
+    };
+
     if (loading) return <div className="loader">Building Community...</div>;
 
     return (
         <div className="community-container container">
+            {showMentorReg && (
+                <MentorRegistration
+                    onComplete={() => {
+                        setShowMentorReg(false);
+                        fetchCommunityData();
+                        alert('Congratulations! You are now a community mentor.');
+                    }}
+                    onCancel={() => setShowMentorReg(false)}
+                />
+            )}
             <div className="community-layout">
+
                 {/* Sidebar: Groups */}
                 <aside className="community-sidebar">
                     <div className="community-card card">
@@ -88,41 +129,51 @@ const Community = () => {
                 {/* Main: Feed */}
                 <main className="community-main">
                     <div className="create-post-card card">
-                        <div className="category-tabs">
-                            {categories.slice(0, 4).map(cat => (
-                                <button
-                                    key={cat}
-                                    className={`cat-tab ${selectedCategory === cat ? 'active' : ''}`}
-                                    onClick={() => setSelectedCategory(cat)}
-                                >
-                                    {cat}
-                                </button>
-                            ))}
-                            <select
-                                className="cat-select"
-                                value={selectedCategory}
-                                onChange={(e) => setSelectedCategory(e.target.value)}
-                            >
-                                <option value="" disabled>Others...</option>
-                                {categories.slice(4).map(cat => (
-                                    <option key={cat} value={cat}>{cat}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <form onSubmit={handleCreatePost} className="post-form">
-                            <textarea
-                                placeholder="Share a resource, ask a question, or discuss a career doubt..."
-                                value={newPost}
-                                onChange={(e) => setNewPost(e.target.value)}
-                                rows={3}
-                            />
-                            <div className="post-actions">
-                                <span className="text-muted small">Posting in {selectedCategory}</span>
-                                <button type="submit" className="btn-primary post-btn">
-                                    Post Community <Send size={16} />
-                                </button>
+                        {!user ? (
+                            <div className="login-prompt">
+                                <h3>Join the conversation</h3>
+                                <p>Please login to share your thoughts and interact with the community.</p>
+                                <button className="btn-primary" onClick={() => navigate('/login')}>Login to Post</button>
                             </div>
-                        </form>
+                        ) : (
+                            <>
+                                <div className="category-tabs">
+                                    {categories.slice(0, 4).map(cat => (
+                                        <button
+                                            key={cat}
+                                            className={`cat-tab ${selectedCategory === cat ? 'active' : ''}`}
+                                            onClick={() => setSelectedCategory(cat)}
+                                        >
+                                            {cat}
+                                        </button>
+                                    ))}
+                                    <select
+                                        className="cat-select"
+                                        value={selectedCategory}
+                                        onChange={(e) => setSelectedCategory(e.target.value)}
+                                    >
+                                        <option value="" disabled>Others...</option>
+                                        {categories.slice(4).map(cat => (
+                                            <option key={cat} value={cat}>{cat}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <form onSubmit={handleCreatePost} className="post-form">
+                                    <textarea
+                                        placeholder="Share a resource, ask a question, or discuss a career doubt..."
+                                        value={newPost}
+                                        onChange={(e) => setNewPost(e.target.value)}
+                                        rows={3}
+                                    />
+                                    <div className="post-actions">
+                                        <span className="text-muted small">Posting in {selectedCategory}</span>
+                                        <button type="submit" className="btn-primary post-btn" disabled={!newPost.trim()}>
+                                            Post Community <Send size={16} />
+                                        </button>
+                                    </div>
+                                </form>
+                            </>
+                        )}
                     </div>
 
                     <div className="feed-list">
@@ -130,13 +181,24 @@ const Community = () => {
                             <div key={post._id} className="post-card card">
                                 <div className="post-header">
                                     <div className="user-avatar-mini">
-                                        {post.user.name.charAt(0)}
+                                        {post.user?.name?.charAt(0) || '?'}
                                     </div>
                                     <div className="user-meta">
-                                        <strong>{post.user.name}</strong>
-                                        <span className="post-time">{new Date(post.createdAt).toLocaleDateString()}</span>
+                                        <strong>{post.user?.name || 'Deleted User'}</strong>
+                                        <span className="post-time">{post.createdAt ? new Date(post.createdAt).toLocaleDateString() : 'Unknown date'}</span>
                                     </div>
-                                    <div className="post-tag">{post.category}</div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                                        <div className="post-tag">{post.category}</div>
+                                        {user && (user._id === post.user?._id || user.id === post.user?._id) && (
+                                            <button
+                                                onClick={() => handleDeletePost(post._id)}
+                                                style={{ background: 'none', border: 'none', color: '#ff4d4f', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                                                title="Delete Post"
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="post-content">
                                     {post.content}
@@ -153,8 +215,19 @@ const Community = () => {
                                 {post.comments.length > 0 && (
                                     <div className="comments-section">
                                         {post.comments.map((comment, i) => (
-                                            <div key={i} className="comment-item">
-                                                <strong>{comment.user?.name || 'User'}:</strong> <span>{comment.text}</span>
+                                            <div key={i} className="comment-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                                <div>
+                                                    <strong>{comment.user?.name || 'User'}:</strong> <span>{comment.text}</span>
+                                                </div>
+                                                {user && (user._id === comment.user?._id || user.id === comment.user?._id) && (
+                                                    <button
+                                                        onClick={() => handleDeleteComment(post._id, comment._id)}
+                                                        style={{ background: 'none', border: 'none', color: '#ff4d4f', cursor: 'pointer', padding: '0 5px' }}
+                                                        title="Delete Comment"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                )}
                                             </div>
                                         ))}
                                     </div>
@@ -193,21 +266,39 @@ const Community = () => {
                         <p className="text-muted small">Peer experts ready to help</p>
                         <div className="mini-mentor-list">
                             {mentors.slice(0, 5).map(mentor => (
-                                <div key={mentor._id} className="mini-mentor-item">
+                                <div key={mentor._id} className="mini-mentor-item" onClick={() => window.open(mentor.linkedIn, '_blank')} style={{ cursor: 'pointer' }}>
+
                                     <div className="avatar-blue">
-                                        {mentor.user.name.charAt(0)}
+                                        {mentor.user?.name?.charAt(0) || '?'}
                                     </div>
                                     <div>
-                                        <strong>{mentor.user.name}</strong>
-                                        <p>{mentor.mentorProfile.currentRole}</p>
+                                        <strong>{mentor.user?.name || 'Anonymous Mentor'}</strong>
+                                        <p>{mentor.expertRole || mentor.primaryDomain || 'Mentor'}</p>
                                     </div>
+
                                 </div>
                             ))}
                             {mentors.length === 0 && <p className="text-muted small">No mentors joined yet.</p>}
                         </div>
                         <button className="btn-secondary full-width" style={{ marginTop: '1rem' }}>Browse All Mentors</button>
                     </div>
+
+                    {user && userProfile && !userProfile.isMentor && (
+                        <div className="join-mentors-cta card" style={{ marginTop: '1.5rem', background: 'var(--primary-gradient)', color: '#fff' }}>
+                            <Sparkles size={24} style={{ marginBottom: '1rem' }} />
+                            <h3>Want to Mentor?</h3>
+                            <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.9rem', marginBottom: '1.2rem' }}>Share your expertise with the community and help others grow.</p>
+                            <button
+                                className="btn-primary"
+                                style={{ background: '#fff', color: 'var(--primary-orange)', border: 'none' }}
+                                onClick={() => setShowMentorReg(true)}
+                            >
+                                Get Started
+                            </button>
+                        </div>
+                    )}
                 </aside>
+
             </div>
         </div>
     );

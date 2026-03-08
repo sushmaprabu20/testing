@@ -10,7 +10,12 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         const userInfo = localStorage.getItem('userInfo');
         if (userInfo) {
-            setUser(JSON.parse(userInfo));
+            try {
+                setUser(JSON.parse(userInfo));
+            } catch (err) {
+                console.error('Error parsing userInfo from localStorage', err);
+                localStorage.removeItem('userInfo');
+            }
         }
         setLoading(false);
     }, []);
@@ -19,17 +24,20 @@ export const AuthProvider = ({ children }) => {
         const { data } = await api.post('/auth/login', { email, password });
         setUser(data);
         localStorage.setItem('userInfo', JSON.stringify(data));
+        localStorage.setItem('token', data.token);
     };
 
     const register = async (name, email, password) => {
         const { data } = await api.post('/auth/register', { name, email, password });
         setUser(data);
         localStorage.setItem('userInfo', JSON.stringify(data));
+        localStorage.setItem('token', data.token);
     };
 
     const logout = () => {
         setUser(null);
         localStorage.removeItem('userInfo');
+        localStorage.removeItem('token');
     };
 
     return (

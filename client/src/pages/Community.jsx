@@ -2,9 +2,36 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { AuthContext } from '../context/AuthContext';
-import { MessageSquare, Users, Sparkles, Filter, Send, ThumbsUp, MessageCircle, Briefcase, Plus, Search, Trash2 } from 'lucide-react';
+import { MessageSquare, Users, Sparkles, Filter, Send, ThumbsUp, MessageCircle, Briefcase, Plus, Search, Trash2, AlertTriangle, X } from 'lucide-react';
 import './Community.css';
 
+// ─── Delete Confirmation Modal ────────────────────────────────────────────────
+const DeleteModal = ({ onConfirm, onCancel, type = 'post' }) => (
+    <div className="modal-overlay" onClick={onCancel}>
+        <div className="delete-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="delete-modal-icon">
+                <AlertTriangle size={32} color="#ff4d4f" />
+            </div>
+            <h3>Delete {type === 'post' ? 'Post' : 'Comment'}?</h3>
+            <p>
+                This action <strong>cannot be undone</strong>.{' '}
+                {type === 'post'
+                    ? 'Your post and all its comments will be permanently removed.'
+                    : 'Your comment will be permanently removed.'}
+            </p>
+            <div className="delete-modal-actions">
+                <button className="modal-cancel-btn" onClick={onCancel}>
+                    <X size={16} /> Cancel
+                </button>
+                <button className="modal-delete-btn" onClick={onConfirm}>
+                    <Trash2 size={16} /> Yes, Delete
+                </button>
+            </div>
+        </div>
+    </div>
+);
+
+// ─── Main Community Component ─────────────────────────────────────────────────
 const Community = () => {
     const navigate = useNavigate();
     const { user } = useContext(AuthContext);
@@ -16,9 +43,21 @@ const Community = () => {
     const [selectedCategory, setSelectedCategory] = useState('General');
     const [showMentorReg, setShowMentorReg] = useState(false);
     const [userProfile, setUserProfile] = useState(null);
+    const [deletingPostIds, setDeletingPostIds] = useState(new Set()); // for fade-out animation
 
+    // Modal state: { type: 'post' | 'comment', postId, commentId }
+    const [deleteTarget, setDeleteTarget] = useState(null);
 
     const categories = ['General', 'Backend Development', 'Frontend Development', 'Data Science', 'AI/ML', 'DevOps', 'Interview Experience'];
+
+    // Helper: get current user ID reliably (handles _id vs id)
+    const currentUserId = user?._id || user?.id;
+
+    // Helper: check if the logged-in user owns a resource
+    const isOwner = (resourceUserId) => {
+        if (!currentUserId || !resourceUserId) return false;
+        return currentUserId.toString() === resourceUserId.toString();
+    };
 
     useEffect(() => {
         fetchCommunityData();
@@ -36,7 +75,6 @@ const Community = () => {
             setGroups(groupsRes.data);
             setMentors(mentorsRes.data);
             setUserProfile(profileRes.data);
-
             setLoading(false);
         } catch (err) {
             console.error('Error fetching community data:', err);
@@ -47,7 +85,6 @@ const Community = () => {
     const handleCreatePost = async (e) => {
         e.preventDefault();
         if (!newPost.trim()) return;
-
         try {
             const res = await api.post('/community/posts', {
                 content: newPost,
@@ -69,18 +106,48 @@ const Community = () => {
         }
     };
 
-    const handleDeletePost = async (postId) => {
-        if (!window.confirm('Are you sure you want to delete this post?')) return;
-        try {
-            await api.delete(`/community/posts/${postId}`);
-            setPosts(posts.filter(p => p._id !== postId));
-        } catch (err) {
-            console.error('Error deleting post:', err);
-        }
+    // ── Delete Post ──────────────────────────────────────────────────────────
+    const confirmDeletePost = (postId) => {
+        setDeleteTarget({ type: 'post', postId });
     };
 
-    const handleDeleteComment = async (postId, commentId) => {
-        if (!window.confirm('Are you sure you want to delete this comment?')) return;
+    const handleDeletePost = async () => {
+        const { postId } = deleteTarget;
+        setDeleteTarget(null);
+
+        // Add to deleting set to trigger fade-out
+        setDeletingPostIds(prev => new Set(prev).add(postId));
+
+        // Wait for animation then remove from state
+        setTimeout(async () => {
+            try {
+                await api.delete(`/community/posts/${postId}`);
+                setPosts(prev => prev.filter(p => p._id !== postId));
+            } catch (err) {
+                console.error('Error deleting post:', err);
+                // On error, remove from deleting set so it reappears
+                setDeletingPostIds(prev => {
+                    const next = new Set(prev);
+                    next.delete(postId);
+                    return next;
+                });
+            }
+            setDeletingPostIds(prev => {
+                const next = new Set(prev);
+                next.delete(postId);
+                return next;
+            });
+        }, 350); // matches CSS transition duration
+    };
+
+    // ── Delete Comment ───────────────────────────────────────────────────────
+    const confirmDeleteComment = (postId, commentId) => {
+        setDeleteTarget({ type: 'comment', postId, commentId });
+    };
+
+    const handleDeleteComment = async () => {
+        const { postId, commentId } = deleteTarget;
+        setDeleteTarget(null);
         try {
             const res = await api.delete(`/community/posts/${postId}/comment/${commentId}`);
             setPosts(posts.map(p => p._id === postId ? res.data : p));
@@ -89,10 +156,27 @@ const Community = () => {
         }
     };
 
+    // ── Modal confirm dispatcher ─────────────────────────────────────────────
+    const handleModalConfirm = () => {
+        if (!deleteTarget) return;
+        if (deleteTarget.type === 'post') handleDeletePost();
+        else handleDeleteComment();
+    };
+
     if (loading) return <div className="loader">Building Community...</div>;
 
     return (
         <div className="community-container container">
+
+            {/* Delete Confirmation Modal */}
+            {deleteTarget && (
+                <DeleteModal
+                    type={deleteTarget.type}
+                    onConfirm={handleModalConfirm}
+                    onCancel={() => setDeleteTarget(null)}
+                />
+            )}
+
             {showMentorReg && (
                 <MentorRegistration
                     onComplete={() => {
@@ -103,6 +187,7 @@ const Community = () => {
                     onCancel={() => setShowMentorReg(false)}
                 />
             )}
+
             <div className="community-layout">
 
                 {/* Sidebar: Groups */}
@@ -178,34 +263,45 @@ const Community = () => {
 
                     <div className="feed-list">
                         {posts.map(post => (
-                            <div key={post._id} className="post-card card">
+                            <div
+                                key={post._id}
+                                className={`post-card card ${deletingPostIds.has(post._id) ? 'post-deleting' : ''}`}
+                            >
                                 <div className="post-header">
                                     <div className="user-avatar-mini">
                                         {post.user?.name?.charAt(0) || '?'}
                                     </div>
                                     <div className="user-meta">
                                         <strong>{post.user?.name || 'Deleted User'}</strong>
-                                        <span className="post-time">{post.createdAt ? new Date(post.createdAt).toLocaleDateString() : 'Unknown date'}</span>
+                                        <span className="post-time">
+                                            {post.createdAt
+                                                ? new Date(post.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+                                                : 'Unknown date'}
+                                        </span>
                                     </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                                    <div className="post-header-right">
                                         <div className="post-tag">{post.category}</div>
-                                        {user && (user._id === post.user?._id || user.id === post.user?._id) && (
+                                        {/* Delete button — only visible to post owner */}
+                                        {isOwner(post.user?._id) && (
                                             <button
-                                                onClick={() => handleDeletePost(post._id)}
-                                                style={{ background: 'none', border: 'none', color: '#ff4d4f', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                                                title="Delete Post"
+                                                className="delete-post-btn"
+                                                onClick={() => confirmDeletePost(post._id)}
+                                                title="Delete your post"
+                                                aria-label="Delete post"
                                             >
-                                                <Trash2 size={18} />
+                                                <Trash2 size={16} />
+                                                <span>Delete</span>
                                             </button>
                                         )}
                                     </div>
                                 </div>
-                                <div className="post-content">
-                                    {post.content}
-                                </div>
+
+                                <div className="post-content">{post.content}</div>
+
                                 <div className="post-footer">
                                     <button className="post-action-btn" onClick={() => handleLike(post._id)}>
-                                        <ThumbsUp size={18} className={post.likes.length > 0 ? 'liked' : ''} /> {post.likes.length}
+                                        <ThumbsUp size={18} className={post.likes.length > 0 ? 'liked' : ''} />
+                                        {post.likes.length}
                                     </button>
                                     <button className="post-action-btn">
                                         <MessageCircle size={18} /> {post.comments.length}
@@ -215,17 +311,20 @@ const Community = () => {
                                 {post.comments.length > 0 && (
                                     <div className="comments-section">
                                         {post.comments.map((comment, i) => (
-                                            <div key={i} className="comment-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                                <div>
-                                                    <strong>{comment.user?.name || 'User'}:</strong> <span>{comment.text}</span>
+                                            <div key={comment._id || i} className="comment-item">
+                                                <div className="comment-text">
+                                                    <strong>{comment.user?.name || 'User'}:</strong>
+                                                    <span> {comment.text}</span>
                                                 </div>
-                                                {user && (user._id === comment.user?._id || user.id === comment.user?._id) && (
+                                                {/* Delete comment — only visible to comment owner */}
+                                                {isOwner(comment.user?._id) && (
                                                     <button
-                                                        onClick={() => handleDeleteComment(post._id, comment._id)}
-                                                        style={{ background: 'none', border: 'none', color: '#ff4d4f', cursor: 'pointer', padding: '0 5px' }}
-                                                        title="Delete Comment"
+                                                        className="delete-comment-btn"
+                                                        onClick={() => confirmDeleteComment(post._id, comment._id)}
+                                                        title="Delete your comment"
+                                                        aria-label="Delete comment"
                                                     >
-                                                        <Trash2 size={14} />
+                                                        <Trash2 size={13} />
                                                     </button>
                                                 )}
                                             </div>
@@ -236,7 +335,7 @@ const Community = () => {
                                 <div className="comment-input-area">
                                     <input
                                         type="text"
-                                        placeholder="Add a comment..."
+                                        placeholder="Add a comment... (press Enter)"
                                         onKeyDown={async (e) => {
                                             if (e.key === 'Enter' && e.target.value.trim()) {
                                                 const text = e.target.value;
@@ -267,7 +366,6 @@ const Community = () => {
                         <div className="mini-mentor-list">
                             {mentors.slice(0, 5).map(mentor => (
                                 <div key={mentor._id} className="mini-mentor-item" onClick={() => window.open(mentor.linkedIn, '_blank')} style={{ cursor: 'pointer' }}>
-
                                     <div className="avatar-blue">
                                         {mentor.user?.name?.charAt(0) || '?'}
                                     </div>
@@ -275,7 +373,6 @@ const Community = () => {
                                         <strong>{mentor.user?.name || 'Anonymous Mentor'}</strong>
                                         <p>{mentor.expertRole || mentor.primaryDomain || 'Mentor'}</p>
                                     </div>
-
                                 </div>
                             ))}
                             {mentors.length === 0 && <p className="text-muted small">No mentors joined yet.</p>}

@@ -120,6 +120,14 @@
 .post-card {
     padding: 1.5rem;
     margin-bottom: 1.5rem;
+    transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+/* Fade-out animation when a post is being deleted */
+.post-deleting {
+    opacity: 0;
+    transform: scale(0.97);
+    pointer-events: none;
 }
 
 .post-header {
@@ -127,6 +135,38 @@
     align-items: center;
     gap: 1rem;
     margin-bottom: 1.2rem;
+}
+
+/* Right side of post header: tag + delete button */
+.post-header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-left: auto;
+}
+
+/* Delete Post Button */
+.delete-post-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.75rem;
+    border: 1.5px solid #ff4d4f;
+    border-radius: 20px;
+    background: transparent;
+    color: #ff4d4f;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.delete-post-btn:hover {
+    background: #ff4d4f;
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 77, 79, 0.3);
 }
 
 .user-avatar-mini {
@@ -206,13 +246,41 @@
 }
 
 .comment-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
     font-size: 0.9rem;
     line-height: 1.4;
+    padding: 0.2rem 0;
+}
+
+.comment-text {
+    flex: 1;
 }
 
 .comment-item strong {
     color: var(--text-main);
-    margin-right: 0.5rem;
+    margin-right: 0.4rem;
+}
+
+/* Delete Comment Button */
+.delete-comment-btn {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    color: #ccc;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: color 0.2s, background 0.2s;
+    display: flex;
+    align-items: center;
+}
+
+.delete-comment-btn:hover {
+    color: #ff4d4f;
+    background: rgba(255, 77, 79, 0.08);
 }
 
 .comment-input-area {
@@ -305,4 +373,126 @@
     .community-sidebar {
         display: none;
     }
+}
+
+/* ─── Delete Confirmation Modal ──────────────────────────────────────────── */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    animation: fadeInOverlay 0.2s ease;
+}
+
+@keyframes fadeInOverlay {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.delete-modal {
+    background: #fff;
+    border-radius: 20px;
+    padding: 2.5rem 2rem;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    animation: slideUpModal 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes slideUpModal {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.delete-modal-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(255, 77, 79, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.25rem;
+}
+
+.delete-modal h3 {
+    font-size: 1.3rem;
+    color: #1a1a2e;
+    margin-bottom: 0.75rem;
+}
+
+.delete-modal p {
+    color: #666;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+}
+
+.delete-modal p strong {
+    color: #ff4d4f;
+}
+
+.delete-modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.modal-cancel-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.7rem 1.5rem;
+    border: 1.5px solid #ddd;
+    border-radius: 10px;
+    background: #f8fafc;
+    color: #555;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.modal-cancel-btn:hover {
+    background: #eee;
+    border-color: #bbb;
+}
+
+.modal-delete-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.7rem 1.5rem;
+    border: none;
+    border-radius: 10px;
+    background: #ff4d4f;
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 15px rgba(255, 77, 79, 0.35);
+}
+
+.modal-delete-btn:hover {
+    background: #e03e40;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(255, 77, 79, 0.45);
 }

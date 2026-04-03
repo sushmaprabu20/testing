@@ -16,7 +16,9 @@ const Signup = () => {
             await register(name, email, password);
             navigate('/dashboard');
         } catch (err) {
-            alert(err.response?.data?.message || 'Registration failed');
+            console.error('[SIGNUP ERROR]', err);
+            const errorMessage = err.response?.data?.message || err.message || 'Registration failed';
+            alert(errorMessage);
         }
     };
 

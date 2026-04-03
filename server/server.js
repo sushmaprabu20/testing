@@ -30,7 +30,14 @@ const app = express();
 console.log('Express app initialized');
 
 const corsOptions = {
-    origin: process.env.FRONTEND_URL || '*',
+    origin: (origin, callback) => {
+        const allowedOrigins = process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',') : [];
+        if (!origin || allowedOrigins.includes(origin) || process.env.FRONTEND_URL === '*') {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
     credentials: true,

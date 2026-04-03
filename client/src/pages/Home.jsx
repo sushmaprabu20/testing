@@ -13,9 +13,9 @@ const Home = () => {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 1 }}
                 >
-                    <span className="badge-new">NEW: AI Career Mapping v2.0</span>
-                    <h1>Navigate Your Career <br />With <span>AI Precision</span></h1>
-                    <p>Upload your resume to instantly identify skill gaps and generate a personalized roadmap to your dream role.</p>
+                    <span className="badge-new">NEW: Career Mapping v2.0</span>
+                    <h1>Navigate Your Career <br />With <span> Smart Guidance</span></h1>
+                    <p>Upload your resume to instantly identify skill gaps and generate a personalized 3-month roadmap to your dream role.</p>
                     <div className="hero-btns">
                         <Link to="/signup" className="btn-primary">Get Started Free</Link>
                         <Link to="/career-paths" className="btn-hero-secondary">Explore Paths</Link>
@@ -32,7 +32,7 @@ const Home = () => {
                         <div className="circle-grad c1"></div>
                         <div className="circle-grad c2"></div>
                         <div className="floating-card c-1">Resume Analyzed ✓</div>
-                        <div className="floating-card c-2">Roadmap Generated 🚀</div>
+                        <div className="floating-card c-2">Boost career🚀</div>
                     </div>
                 </motion.div>
             </section>

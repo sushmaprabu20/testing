@@ -29,7 +29,15 @@ connectDB().then(() => {
 const app = express();
 console.log('Express app initialized');
 
-app.use(cors());
+const corsOptions = {
+    origin: process.env.FRONTEND_URL || '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    credentials: true,
+};
+
+app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions)); // Use regex to handle all preflight routes in Express 5
 app.use(express.json());
 app.use(morgan('dev'));
 app.use((req, res, next) => {
